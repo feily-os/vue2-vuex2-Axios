@@ -34,15 +34,15 @@
         },
         methods: {
             clickMenu(rst) {
-                if (rst == "seeHouses") {
+                if (rst === "seeHouses") {
                     console.log(rst);
-                } else if (rst == "message") {
+                } else if (rst === "message") {
                     console.log(rst);
-                } else if (rst == "follow") {
+                } else if (rst === "follow") {
                     console.log(rst);
-                } else if (rst == "myMessage") {
+                } else if (rst === "myMessage") {
                     console.log(rst);
-                } else if (rst == "index") {
+                } else if (rst === "index") {
                     console.log(rst);
                 }
             }

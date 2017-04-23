@@ -1,10 +1,12 @@
 import Vue from 'vue'
-import VueRouter from 'vue-router';
+import VueRouter from 'vue-router'
 
-Vue.use(VueRouter);
+Vue.use(VueRouter)
 
-//实例化VueRouter
-let router = new VueRouter({
+/**
+ * 实例化VueRouter
+ */
+export default new VueRouter({
     routes: [{
         path: '/',
         component: require('./views/advertising/advertising')
@@ -15,7 +17,4 @@ let router = new VueRouter({
         path: '/login',
         component: require('./views/user/login')
     }]
-});
-
-
-export default router;
+})

@@ -1,31 +1,39 @@
-// 引入必要的模块
+require('./check-versions')()
+
+var config = require('../config')
+if (!process.env.NODE_ENV) {
+    process.env.NODE_ENV = JSON.parse(config.dev.env.NODE_ENV)
+}
+
+var opn = require('opn')
+var path = require('path')
 var express = require('express')
 var webpack = require('webpack')
-var config = require('./webpack.dev.conf')
-var proxyMiddleware = require("http-proxy-middleware")
+var proxyMiddleware = require('http-proxy-middleware')
+var webpackConfig = require('./webpack.dev.conf')
+
+// default port where dev server listens for incoming traffic
+var port = process.env.PORT || config.dev.port
+    // automatically open browser, if not set will be false
+var autoOpenBrowser = !!config.dev.autoOpenBrowser
+    // Define HTTP proxies to your custom API backend
+    // https://github.com/chimurai/http-proxy-middleware
 var proxyTable = config.dev.proxyTable
 
-// 创建一个express实例
 var app = express()
+var compiler = webpack(webpackConfig)
 
-// 调用webpack并把配置传递过去
-var compiler = webpack(config)
-
-// 使用 webpack-dev-middleware 中间件
 var devMiddleware = require('webpack-dev-middleware')(compiler, {
-    publicPath: config.output.publicPath,
-    stats: {
-        colors: true,
-        chunks: false
-    }
+    publicPath: webpackConfig.output.publicPath,
+    quiet: true
 })
 
-var hotMiddleware = require('webpack-hot-middleware')(compiler)
-
-// webpack插件，监听html文件改变事件
+var hotMiddleware = require('webpack-hot-middleware')(compiler, {
+        log: () => {}
+    })
+    // force page reload when html-webpack-plugin template changes
 compiler.plugin('compilation', function(compilation) {
     compilation.plugin('html-webpack-plugin-after-emit', function(data, cb) {
-        // 发布事件
         hotMiddleware.publish({ action: 'reload' })
         cb()
     })
@@ -37,20 +45,45 @@ Object.keys(proxyTable).forEach(function(context) {
     if (typeof options === 'string') {
         options = { target: options }
     }
-    app.use(proxyMiddleware(context, options))
+    app.use(proxyMiddleware(options.filter || context, options))
 })
 
-// 注册中间件
+// handle fallback for HTML5 history API
+app.use(require('connect-history-api-fallback')())
+
+// serve webpack bundle output
 app.use(devMiddleware)
 
-// 注册中间件
+// enable hot-reload and state-preserving
+// compilation error display
 app.use(hotMiddleware)
 
-// 监听 5555
-app.listen(5555, function(err) {
-    if (err) {
-        console.log(err)
-        return
-    }
-    console.log('Listening at http://localhost:5555')
+// serve pure static assets
+var staticPath = path.posix.join(config.dev.assetsPublicPath, config.dev.assetsSubDirectory)
+app.use(staticPath, express.static('./static'))
+
+var uri = 'http://localhost:' + port
+
+var _resolve
+var readyPromise = new Promise(resolve => {
+    _resolve = resolve
 })
+
+console.log('> Starting dev server...')
+devMiddleware.waitUntilValid(() => {
+    console.log('> Listening at ' + uri + '\n')
+        // when env is testing, don't need open it
+    if (autoOpenBrowser && process.env.NODE_ENV !== 'testing') {
+        opn(uri)
+    }
+    _resolve()
+})
+
+var server = app.listen(port)
+
+module.exports = {
+    ready: readyPromise,
+    close: () => {
+        server.close()
+    }
+}

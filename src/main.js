@@ -9,17 +9,18 @@ import mint from 'mint-ui'
 import 'mint-ui/lib/style.css'
 import './assets/scss/iconfont.scss'
 
-Vue.use(mint);
-Vue.use(Vuex);
-Vue.use(VueAxios, Axios);
+Vue.use(mint)
+Vue.use(Vuex)
+Vue.use(VueAxios, Axios)
 
 // Vue.prototype.$http = Axios;
 
-Vue.config.debug = true; //开启错误提示
+/* 开启错误提示 */
+Vue.config.debug = true
 
 new Vue({
     el: '#app',
     router,
     store,
-    render: h => h(App),
-});
+    render: h => h(App)
+})

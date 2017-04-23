@@ -118,11 +118,11 @@
         },
         methods: {
             change() {
-                this.axios.get('/mockjs/1/login').then((rst) => {
-                    console.log(rst)
-                }).catch((error) => {
+                // this.axios.get('/mockjs/1/login').then((rst) => {
+                //     console.log(rst)
+                // }).catch((error) => {
 
-                })
+                // })
             },
             zhihu() {
                 this.axios.get('/zhihu/api/4/news/latest').then((rst) => {

@@ -1,53 +1,35 @@
-var path = require('path');
-var webpack = require('webpack');
-var HtmlWebpackPlugin = require('html-webpack-plugin');
-var ExtractTextPlugin = require("extract-text-webpack-plugin");
-// 引入基本配置
-var config = require('./webpack.config');
+var utils = require('./utils')
+var webpack = require('webpack')
+var config = require('../config')
+var merge = require('webpack-merge')
+var baseWebpackConfig = require('./webpack.base.conf')
+var HtmlWebpackPlugin = require('html-webpack-plugin')
+var FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 
-config.output.publicPath = '/';
-
-config.plugins = [
-    new webpack.optimize.OccurenceOrderPlugin(),
-    new webpack.HotModuleReplacementPlugin(),
-    new webpack.NoErrorsPlugin(),
-    new HtmlWebpackPlugin({
-        filename: 'index.html',
-        template: path.resolve(__dirname, '../index.html'),
-        inject: true
-    }),
-    new ExtractTextPlugin("[name].[hash].css"),
-    new webpack.DefinePlugin({
-        'process.env': {
-            NODE_ENV: '"development"'
-        }
-    })
-];
-
-config.dev.proxyTable = {
-    '/mockjs': {
-        target: 'http://192.168.83.250:50000/',
-        // host: "192.168.100.105",
-        secure: false,
-        changeOrigin: false
-    },
-    '/zhihu': {
-        target: 'http://news-at.zhihu.com/',
-        changeOrigin: true,
-        pathRewrite: {
-            '^/zhihu': ''
-        }
-    }
-}
-
-
-// 动态向入口配置中注入 webpack-hot-middleware/client
-// var devClient = 'webpack-hot-middleware/client';
-var devClient = './build/dev-client';
-Object.keys(config.entry).forEach(function(name, i) {
-    var extras = [devClient]
-    config.entry[name] = extras.concat(config.entry[name])
+// add hot-reload related code to entry chunks
+Object.keys(baseWebpackConfig.entry).forEach(function(name) {
+    baseWebpackConfig.entry[name] = ['./build/dev-client'].concat(baseWebpackConfig.entry[name])
 })
 
-config.devtool = "#source-map";
-module.exports = config;
+module.exports = merge(baseWebpackConfig, {
+    module: {
+        rules: utils.styleLoaders({ sourceMap: config.dev.cssSourceMap })
+    },
+    // cheap-module-eval-source-map is faster for development
+    devtool: '#cheap-module-eval-source-map',
+    plugins: [
+        new webpack.DefinePlugin({
+            'process.env': config.dev.env
+        }),
+        // https://github.com/glenjamin/webpack-hot-middleware#installation--usage
+        new webpack.HotModuleReplacementPlugin(),
+        new webpack.NoEmitOnErrorsPlugin(),
+        // https://github.com/ampedandwired/html-webpack-plugin
+        new HtmlWebpackPlugin({
+            filename: 'index.html',
+            template: 'index.html',
+            inject: true
+        }),
+        new FriendlyErrorsPlugin()
+    ]
+})
